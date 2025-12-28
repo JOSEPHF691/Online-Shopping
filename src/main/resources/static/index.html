@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>CS黑市商城</title>
+    <style>
+        /* ===== 全局 ===== */
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Arial', 'Helvetica', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+        }
+        a { text-decoration: none; color: inherit; }
+        button { cursor: pointer; }
+
+        /* ===== 顶部导航 ===== */
+        #top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 30px;
+            background: rgba(0,0,0,0.6);
+            position: sticky; top: 0; z-index: 100;
+            border-bottom: 1px solid #444;
+        }
+        #top-bar span { font-weight: bold; }
+        #top-bar button { background:#e91e63; border:none; padding:6px 12px; border-radius:6px; color:#fff; }
+
+        /* ===== 登录注册容器 ===== */
+        .auth-wrapper {
+            display: flex; justify-content:center; align-items:center; height:90vh;
+            gap:40px;
+        }
+        .auth-card {
+            background: rgba(255,255,255,0.1);
+            padding:40px; border-radius:15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+            width:300px; text-align:center;
+        }
+        .auth-card h1 { margin-bottom:20px; font-size:24px; color:#ffeb3b; text-shadow: 1px 1px 2px #000; }
+        .auth-card input {
+            width: 100%; padding:10px; margin:8px 0;
+            border:none; border-radius:8px; background: rgba(255,255,255,0.8); color:#000;
+        }
+        .auth-card button {
+            width:100%; padding:10px; margin-top:12px;
+            border:none; border-radius:8px; font-weight:bold;
+            background:#4caf50; color:#fff; transition:0.3s;
+        }
+        .auth-card button:hover { background:#388e3c; }
+        .link-btn { background:none; color:#ffeb3b; text-decoration:underline; margin-top:10px; display:inline-block; }
+
+        /* ===== 商城主界面 ===== */
+        .container { padding:20px 40px; max-width:1200px; margin:auto; }
+        .section { margin-bottom:40px; background: rgba(255,255,255,0.05); border-radius:12px; padding:20px; }
+        h2,h3 { border-bottom:1px solid #444; padding-bottom:8px; margin-bottom:15px; color:#ffeb3b; }
+
+        /* 商品网格 */
+        .product-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:20px; }
+        .product-card {
+            background: rgba(255,255,255,0.1);
+            padding:15px; border-radius:12px; text-align:center; transition:0.3s;
+        }
+        .product-card:hover { transform: translateY(-5px); box-shadow:0 10px 20px rgba(0,0,0,0.5); }
+        .product-card h3 { color:#ffeb3b; }
+        .price { color:#ff5722; font-weight:bold; font-size:1.2em; margin:5px 0; }
+
+        /* 购物车 & 表格 */
+        table { width:100%; border-collapse: collapse; margin-top:10px; }
+        th, td { border:1px solid #555; padding:8px; text-align:center; font-size:14px; color:#fff; }
+        th { background: rgba(0,0,0,0.3); }
+
+        /* 按钮样式 */
+        .btn { padding:6px 12px; border:none; border-radius:6px; color:#fff; font-weight:bold; transition:0.2s; }
+        .btn.green { background:#4caf50; } .btn.green:hover { background:#388e3c; }
+        .btn.red { background:#f44336; } .btn.red:hover { background:#d32f2f; }
+        .btn.orange { background:#ff9800; } .btn.orange:hover { background:#f57c00; }
+        .btn.disabled { background:#888; cursor:not-allowed; }
+
+        /* 分页 */
+        .pagination-bar { text-align:right; margin-top:10px; }
+        .pagination-bar button { margin-left:5px; }
+
+        /* 隐藏元素 */
+        .hidden { display:none; }
+    </style>
+</head>
+<body>
+
+<!-- 顶部导航 -->
+<div id="top-bar" class="hidden">
+    <div>👤 <span id="current-user"></span></div>
+    <button onclick="logout()">退出登录</button>
+</div>
+
+<!-- 登录注册 -->
+<div class="auth-wrapper">
+    <div id="login-box" class="auth-card">
+        <h1>🛡 CS黑市</h1>
+        <input type="text" id="username" placeholder="用户名">
+        <input type="password" id="password" placeholder="密码">
+        <button onclick="login()">登录</button>
+        <div class="link-btn" onclick="toggleAuth('register')">没有账号？注册</div>
+    </div>
+
+    <div id="register-box" class="auth-card hidden">
+        <h1>🆕 新用户注册</h1>
+        <input type="text" id="reg-username" placeholder="用户名">
+        <input type="text" id="reg-name" placeholder="昵称/姓名">
+        <input type="text" id="reg-email" placeholder="邮箱">
+        <input type="password" id="reg-password" placeholder="密码">
+        <button onclick="register()">注册</button>
+        <div class="link-btn" onclick="toggleAuth('login')">已有账号？登录</div>
+    </div>
+</div>
+
+<!-- 顾客商城界面 -->
+<div class="container hidden" id="customer-app">
+    <div class="section">
+        <h2>🛍️ 商品选购</h2>
+        <div class="product-grid" id="product-list"></div>
+    </div>
+
+    <div class="section">
+        <h3>🛒 我的购物车</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>商品</th>
+                <th>单价</th>
+                <th>数量</th>
+                <th>小计</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="cart-body"></tbody>
+        </table>
+        <div style="text-align:right; margin-top:10px;">
+            <button class="btn green" onclick="checkout()">结算</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>🧾 我的历史订单</h3>
+        <button class="btn orange" onclick="loadMyOrders()">刷新订单</button>
+        <table>
+            <thead>
+            <tr>
+                <th>订单号</th>
+                <th>商品</th>
+                <th>数量</th>
+                <th>总价</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="my-order-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 管理员界面 -->
+<div class="container hidden" id="admin-app">
+    <div class="section">
+        <h3>➕ 商品管理</h3>
+        <input type="text" id="p-name" placeholder="商品名称">
+        <input type="number" id="p-price" placeholder="价格">
+        <input type="number" id="p-stock" placeholder="库存">
+        <input type="text" id="p-image" placeholder="图片名">
+        <br><textarea id="p-desc" placeholder="商品描述"></textarea><br>
+        <button class="btn green" onclick="addProduct()">上架商品</button>
+    </div>
+
+    <div class="section">
+        <h3>📦 订单管理</h3>
+        <button class="btn orange" onclick="loadAllOrders()">刷新所有订单</button>
+        <table>
+            <thead>
+            <tr>
+                <th>订单号</th>
+                <th>用户ID</th>
+                <th>商品</th>
+                <th>数量</th>
+                <th>总价</th>
+                <th>状态</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody id="admin-order-body"></tbody>
+        </table>
+        <div class="pagination-bar">
+            <button id="btn-prev" onclick="changePage(-1)">上一页</button>
+            <span id="page-info">第 1 页</span>
+            <button id="btn-next" onclick="changePage(1)">下一页</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h3>📈 销售统计</h3>
+        <button class="btn orange" onclick="loadStats()">查看报表</button>
+        <table>
+            <thead>
+            <tr style="background: rgba(255,235,59,0.3);">
+                <th>商品名称</th>
+                <th>累计销量</th>
+                <th>累计收入</th>
+            </tr>
+            </thead>
+            <tbody id="stats-body"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API_BASE = "http://localhost:8081";
+    let currentUserId = null;
+    let currentUserRole = 0;
+    let allAdminOrders = [];
+    let currentPage = 1;
+    const pageSize = 5;
+
+    window.onload = function() {
+        const savedUser = localStorage.getItem('shop_user');
+        if(savedUser) handleLoginSuccess(JSON.parse(savedUser));
+    }
+
+    function toggleAuth(mode){
+        document.getElementById('login-box').classList.toggle('hidden', mode==='register');
+        document.getElementById('register-box').classList.toggle('hidden', mode==='login');
+    }
+
+    async function register(){
+        const username = document.getElementById('reg-username').value;
+        const name = document.getElementById('reg-name').value;
+        const password = document.getElementById('reg-password').value;
+        const email = document.getElementById('reg-email').value;
+        if(!username||!password){alert("用户名和密码不能为空");return;}
+        const res = await fetch(`${API_BASE}/user/register`,{
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({username,password,name,email})
+        });
+        const result = await res.json();
+        if(result.code===1){alert("注册成功"); toggleAuth('login'); }
+        else alert("注册失败:"+result.msg);
+    }
+
+    async function login(){
+        const username=document.getElementById('username').value;
+        const password=document.getElementById('password').value;
+        const res=await fetch(`${API_BASE}/user/login`,{
+            method:'POST', headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({username,password})
+        });
+        const result=await res.json();
+        if(result.code===1){ localStorage.setItem('shop_user',JSON.stringify(result.data)); handleLoginSuccess(result.data);}
+        else alert("登录失败:"+result.msg);
+    }
+
+    function handleLoginSuccess(user){
+        currentUserId=user.id; currentUserRole=user.role;
+        const roleName=currentUserRole===1?'管理员':'顾客';
+        document.getElementById('current-user').innerText=`${user.name} (${roleName})`;
+        document.getElementById('top-bar').classList.remove('hidden');
+        document.getElementById('login-box').classList.add('hidden');
+        document.getElementById('register-box').classList.add('hidden');
+        if(currentUserRole===1){document.getElementById('admin-app').classList.remove('hidden'); loadAllOrders();}
+        else{document.getElementById('customer-app').classList.remove('hidden'); loadProducts(); loadCart(); loadMyOrders();}
+    }
+
+    function logout(){ localStorage.removeItem('shop_user'); location.reload(); }
+
+    /* ================= 顾客功能 ================= */
+    async function loadProducts(){
+        const res=await fetch(`${API_BASE}/product/list`);
+        const result=await res.json();
+        const listDiv=document.getElementById('product-list');
+        listDiv.innerHTML='';
+        result.data.forEach(p=>{
+            listDiv.innerHTML+=`<div class="product-card"><h3>${p.name}</h3><p class="price">¥${p.price}</p><p>库存: ${p.stock}</p><button class="btn green" onclick="addToCart(${p.id})">加入购物车</button></div>`;
+        });
+    }
+    async function addToCart(pid){ await fetch(`${API_BASE}/cart/add`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:currentUserId,productId:pid,count:1})}); loadCart(); }
+    async function loadCart(){
+        const res=await fetch(`${API_BASE}/cart/list?userId=${currentUserId}`);
+        const result=await res.json(); const tbody=document.getElementById('cart-body'); tbody.innerHTML='';
+        result.data.forEach(item=>{
+            tbody.innerHTML+=`<tr><td>${item.productName}</td><td>${item.price}</td><td><button class="btn red" onclick="decrease(${item.id})">-</button> ${item.count} <button class="btn green" onclick="addToCart(${item.productId})">+</button></td><td>${item.totalMoney}</td><td><button class="btn red" onclick="removeFromCart(${item.id})">删</button></td></tr>`;
+        });
+    }
+    async function decrease(id){ await fetch(`${API_BASE}/cart/decrease?id=${id}`,{method:'POST'}); loadCart(); }
+    async function removeFromCart(id){ await fetch(`${API_BASE}/cart/remove?id=${id}`,{method:'DELETE'}); loadCart(); }
+    async function checkout(){ if(!confirm("确定结算吗？")) return; const res=await fetch(`${API_BASE}/order/checkout?userId=${currentUserId}`,{method:'POST'}); const result=await res.json(); if(result.code===1){alert(result.data); loadCart(); loadMyOrders();}else alert(result.msg);}
+    async function loadMyOrders(){ const res=await fetch(`${API_BASE}/order/list?userId=${currentUserId}`); const result=await res.json(); renderOrderRows(result.data,document.getElementById('my-order-body'),false);}
+    async function payOrder(orderNo){ await fetch(`${API_BASE}/order/pay?orderNo=${orderNo}`,{method:'POST'}); alert("支付成功"); currentUserRole===1? loadAllOrders():loadMyOrders();}
+
+    /* ================= 管理员功能 ================= */
+    async function addProduct(){ const data={name:document.getElementById('p-name').value,price:document.getElementById('p-price').value,stock:document.getElementById('p-stock').value,image:document.getElementById('p-image').value,description:document.getElementById('p-desc').value}; const res=await fetch(`${API_BASE}/product/add`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if((await res.json()).code===1) alert("上架成功！"); }
+    async function loadAllOrders(){ const res=await fetch(`${API_BASE}/order/admin/list`); const result=await res.json(); allAdminOrders=result.data; currentPage=1; renderAdminPage(); }
+    function renderAdminPage(){ const start=(currentPage-1)*pageSize; const end=start+pageSize; const pageData=allAdminOrders.slice(start,end); renderOrderRows(pageData,document.getElementById('admin-order-body'),true); document.getElementById('page-info').innerText=`第 ${currentPage} 页 / 共 ${Math.ceil(allAdminOrders.length/pageSize)} 页`; document.getElementById('btn-prev').disabled=(currentPage===1); document.getElementById('btn-next').disabled=(end>=allAdminOrders.length);}
+    function changePage(delta){ currentPage+=delta; renderAdminPage(); }
+    async function shipOrder(orderNo){ if(!confirm(`发货并发送邮件给订单 ${orderNo} ？`)) return; const res=await fetch(`${API_BASE}/order/ship?orderNo=${orderNo}`,{method:'POST'}); if((await res.json()).code===1){ alert("发货成功！邮件已发送"); loadAllOrders(); } }
+    async function loadStats(){ const res=await fetch(`${API_BASE}/order/admin/stats`); const result=await res.json(); const tbody=document.getElementById('stats-body'); tbody.innerHTML=''; if(result.data.length===0){tbody.innerHTML='<tr><td colspan="3">暂无数据</td></tr>'; return;} let total=0; result.data.forEach(item=>{total+=item.totalRevenue; tbody.innerHTML+=`<tr><td>${item.productName}</td><td>${item.totalSold}</td><td>¥${item.totalRevenue}</td></tr>`}); tbody.innerHTML+=`<tr style="background:#222;font-weight:bold"><td>总计</td><td>-</td><td>¥${total.toFixed(2)}</td></tr>`;}
+    function renderOrderRows(orders,tbody,isAdmin){ tbody.innerHTML=''; if(orders.length===0){tbody.innerHTML='<tr><td colspan="7">暂无订单</td></tr>'; return;} orders.forEach(order=>{ let status='',btn=''; if(order.status===1){ status='<span style="color:#f44336">待付款</span>'; btn=isAdmin?'<span style="color:#888">等待付款</span>':`<button class="btn green" onclick="payOrder('${order.orderNo}')">支付</button>`;}
+    else if(order.status===2){ status='<span style="color:#ff9800">已付款(待发货)</span>'; btn=isAdmin?`<button class="btn orange" onclick="shipOrder('${order.orderNo}')">发货</button>`:'等待发货...';}
+    else if(order.status===3){ status='<span style="color:#4caf50">已完成</span>'; btn='✅ 已完成';}
+        tbody.innerHTML+=`<tr>${isAdmin?`<td>${order.orderNo}</td><td>User:${order.userId}</td>`:`<td>${order.orderNo}</td>`}<td>${order.productName}</td><td>${order.count}</td><td>${order.totalAmount}</td><td>${status}</td><td>${btn}</td></tr>`;});
+    }
+</script>
+
+</body>
+</html>
+

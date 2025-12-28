@@ -1,0 +1,77 @@
+### 测试注册功能
+POST http://localhost:8080/user/register
+Content-Type: application/json
+
+{
+  "username": "test_user",
+  "password": "666",
+  "name": "测试员"
+}
+
+### 测试登录功能 - 成功的情况
+POST http://localhost:8080/user/login
+Content-Type: application/json
+
+{
+  "username": "test_user",
+  "password": "666"
+}
+
+### 测试登录功能 - 密码错误的情况
+POST http://localhost:8080/user/login
+Content-Type: application/json
+
+{
+  "username": "test_user",
+  "password": "888"
+}
+
+### 查询商品列表
+GET http://localhost:8080/product/list
+
+### 测试下单功能 (模拟用户 ID=1 买 ID=1 的汉堡，买了 2 个)
+POST http://localhost:8080/order/create
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "productId": 1,
+  "count": 2
+}
+### 1. 把汉堡加入购物车 (ID 1, 数量 2)
+POST http://localhost:8080/cart/add
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "productId": 1,
+  "count": 2
+}
+
+### 2. 把可乐加入购物车 (ID 2, 数量 5)
+POST http://localhost:8080/cart/add
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "productId": 2,
+  "count": 5
+}
+
+### 3. 查看购物车里有啥
+GET http://localhost:8080/cart/list?userId=1
+
+### 从购物车删除某样东西 (假设要删 ID 为 1 的那条记录)
+DELETE http://localhost:8080/cart/remove?id=1
+
+### 从购物车减一某样东西
+POST http://localhost:8080/cart/decrease?id=2
+
+### 购物车一键结账
+POST http://localhost:8080/order/checkout?userId=1
+
+### 查看我的历史订单
+GET http://localhost:8080/order/list?userId=1
+
+### 支付订单 (把下面的 orderNo 换成你刚才复制的那个)
+POST http://localhost:8080/order/pay?orderNo=f60b0726-5105-4aa2-8da4-7a1cffcdf6ab
