@@ -1,313 +1,517 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <title>CS黑市商城</title>
-    <style>
-        /* ===== 全局 ===== */
-        body {
-            margin: 0; padding: 0;
-            font-family: 'Arial', 'Helvetica', sans-serif;
-            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            color: #fff;
-        }
-        a { text-decoration: none; color: inherit; }
-        button { cursor: pointer; }
-
-        /* ===== 顶部导航 ===== */
-        #top-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 30px;
-            background: rgba(0,0,0,0.6);
-            position: sticky; top: 0; z-index: 100;
-            border-bottom: 1px solid #444;
-        }
-        #top-bar span { font-weight: bold; }
-        #top-bar button { background:#e91e63; border:none; padding:6px 12px; border-radius:6px; color:#fff; }
-
-        /* ===== 登录注册容器 ===== */
-        .auth-wrapper {
-            display: flex; justify-content:center; align-items:center; height:90vh;
-            gap:40px;
-        }
-        .auth-card {
-            background: rgba(255,255,255,0.1);
-            padding:40px; border-radius:15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-            width:300px; text-align:center;
-        }
-        .auth-card h1 { margin-bottom:20px; font-size:24px; color:#ffeb3b; text-shadow: 1px 1px 2px #000; }
-        .auth-card input {
-            width: 100%; padding:10px; margin:8px 0;
-            border:none; border-radius:8px; background: rgba(255,255,255,0.8); color:#000;
-        }
-        .auth-card button {
-            width:100%; padding:10px; margin-top:12px;
-            border:none; border-radius:8px; font-weight:bold;
-            background:#4caf50; color:#fff; transition:0.3s;
-        }
-        .auth-card button:hover { background:#388e3c; }
-        .link-btn { background:none; color:#ffeb3b; text-decoration:underline; margin-top:10px; display:inline-block; }
-
-        /* ===== 商城主界面 ===== */
-        .container { padding:20px 40px; max-width:1200px; margin:auto; }
-        .section { margin-bottom:40px; background: rgba(255,255,255,0.05); border-radius:12px; padding:20px; }
-        h2,h3 { border-bottom:1px solid #444; padding-bottom:8px; margin-bottom:15px; color:#ffeb3b; }
-
-        /* 商品网格 */
-        .product-grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(220px,1fr)); gap:20px; }
-        .product-card {
-            background: rgba(255,255,255,0.1);
-            padding:15px; border-radius:12px; text-align:center; transition:0.3s;
-        }
-        .product-card:hover { transform: translateY(-5px); box-shadow:0 10px 20px rgba(0,0,0,0.5); }
-        .product-card h3 { color:#ffeb3b; }
-        .price { color:#ff5722; font-weight:bold; font-size:1.2em; margin:5px 0; }
-
-        /* 购物车 & 表格 */
-        table { width:100%; border-collapse: collapse; margin-top:10px; }
-        th, td { border:1px solid #555; padding:8px; text-align:center; font-size:14px; color:#fff; }
-        th { background: rgba(0,0,0,0.3); }
-
-        /* 按钮样式 */
-        .btn { padding:6px 12px; border:none; border-radius:6px; color:#fff; font-weight:bold; transition:0.2s; }
-        .btn.green { background:#4caf50; } .btn.green:hover { background:#388e3c; }
-        .btn.red { background:#f44336; } .btn.red:hover { background:#d32f2f; }
-        .btn.orange { background:#ff9800; } .btn.orange:hover { background:#f57c00; }
-        .btn.disabled { background:#888; cursor:not-allowed; }
-
-        /* 分页 */
-        .pagination-bar { text-align:right; margin-top:10px; }
-        .pagination-bar button { margin-left:5px; }
-
-        /* 隐藏元素 */
-        .hidden { display:none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS黑市商城 - 武器皮肤交易平台</title>
+<link rel="stylesheet" href="/css/style.css?v=2">
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 </head>
 <body>
 
-<!-- 顶部导航 -->
-<div id="top-bar" class="hidden">
-    <div>👤 <span id="current-user"></span></div>
-    <button onclick="logout()">退出登录</button>
+<!-- ==================== Toast 容器 ==================== -->
+<div class="toast-container"></div>
+
+<!-- ==================== 登录/注册页 ==================== -->
+<div id="login-page" class="login-page">
+  <div class="login-container">
+
+    <!-- 登录卡片 -->
+    <div class="login-card" id="login-card">
+      <h1>CS 黑 市</h1>
+      <div class="subtitle">武器皮肤专业交易平台</div>
+      <label>用户名</label>
+      <input type="text" id="login-username" placeholder="请输入用户名" autocomplete="username">
+      <label>密码</label>
+      <input type="password" id="login-password" placeholder="请输入密码" autocomplete="current-password">
+      <button class="btn btn-gold" onclick="doLogin()">登 录</button>
+      <span class="switch-link" onclick="showAuth('register')">还没有账号？立即注册</span>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid #333;text-align:center">
+        <span class="switch-link" onclick="routeAsGuest()" style="color:var(--gold);font-size:14px">🔍 先逛逛 → 游客模式进入</span>
+      </div>
+    </div>
+
+    <!-- 注册卡片 -->
+    <div class="login-card hidden" id="register-card">
+      <h1>注 册</h1>
+      <div class="subtitle">加入CS黑市，开启装备交易</div>
+      <label>用户名</label>
+      <input type="text" id="reg-username" placeholder="登录用">
+      <label>昵称</label>
+      <input type="text" id="reg-name" placeholder="显示名称">
+      <label>邮箱</label>
+      <input type="email" id="reg-email" placeholder="用于接收订单通知">
+      <label>地区</label>
+      <input type="text" id="reg-region" placeholder="如: 广东、北京、上海">
+      <label>密码</label>
+      <input type="password" id="reg-password" placeholder="至少6位">
+      <button class="btn btn-gold" onclick="doRegister()">注 册</button>
+      <span class="switch-link" onclick="showAuth('login')">已有账号？去登录</span>
+    </div>
+
+    <!-- 管理员快捷登录提示 -->
+    <div style="position:fixed;bottom:12px;left:0;right:0;text-align:center;color:var(--text-weak);font-size:11px">
+      测试账号 — 管理员: admin/admin123 | 销售员: seller1/seller123 | 顾客: player1/123456
+    </div>
+  </div>
 </div>
 
-<!-- 登录注册 -->
-<div class="auth-wrapper">
-    <div id="login-box" class="auth-card">
-        <h1>🛡 CS黑市</h1>
-        <input type="text" id="username" placeholder="用户名">
-        <input type="password" id="password" placeholder="密码">
-        <button onclick="login()">登录</button>
-        <div class="link-btn" onclick="toggleAuth('register')">没有账号？注册</div>
-    </div>
+<!-- ==================== 主应用容器 ==================== -->
+<div id="app" class="hidden">
 
-    <div id="register-box" class="auth-card hidden">
-        <h1>🆕 新用户注册</h1>
-        <input type="text" id="reg-username" placeholder="用户名">
-        <input type="text" id="reg-name" placeholder="昵称/姓名">
-        <input type="text" id="reg-email" placeholder="邮箱">
-        <input type="password" id="reg-password" placeholder="密码">
-        <button onclick="register()">注册</button>
-        <div class="link-btn" onclick="toggleAuth('login')">已有账号？登录</div>
+  <!-- 顶部导航 (所有角色共用) -->
+  <div class="top-bar" id="top-bar">
+    <div class="brand"><span class="icon"></span>CS 黑 市</div>
+    <div class="user-info">
+      <!-- 购物车角标 (仅Customer) -->
+      <span id="cart-badge" style="display:none">0</span>
+      <span id="user-role-badge" class="role-badge"></span>
+      <span id="user-display-name" style="font-weight:600"></span>
+      <button class="btn-sm" onclick="doLogout()">退出</button>
     </div>
-</div>
+  </div>
 
-<!-- 顾客商城界面 -->
-<div class="container hidden" id="customer-app">
-    <div class="section">
-        <h2>🛍️ 商品选购</h2>
-        <div class="product-grid" id="product-list"></div>
-    </div>
-
-    <div class="section">
-        <h3>🛒 我的购物车</h3>
-        <table>
-            <thead>
-            <tr>
-                <th>商品</th>
-                <th>单价</th>
-                <th>数量</th>
-                <th>小计</th>
-                <th>操作</th>
-            </tr>
-            </thead>
-            <tbody id="cart-body"></tbody>
-        </table>
-        <div style="text-align:right; margin-top:10px;">
-            <button class="btn green" onclick="checkout()">结算</button>
+  <!-- ==================== Customer界面 ==================== -->
+  <div id="app-customer" class="hidden">
+    <div class="app-layout">
+      <div class="sidebar" id="customer-app">
+        <div class="nav-item active" data-cust-section="cust-shop" onclick="Customer.showSection('cust-shop')">
+          🛍️ <span>商城</span>
         </div>
-    </div>
-
-    <div class="section">
-        <h3>🧾 我的历史订单</h3>
-        <button class="btn orange" onclick="loadMyOrders()">刷新订单</button>
-        <table>
-            <thead>
-            <tr>
-                <th>订单号</th>
-                <th>商品</th>
-                <th>数量</th>
-                <th>总价</th>
-                <th>状态</th>
-                <th>操作</th>
-            </tr>
-            </thead>
-            <tbody id="my-order-body"></tbody>
-        </table>
-    </div>
-</div>
-
-<!-- 管理员界面 -->
-<div class="container hidden" id="admin-app">
-    <div class="section">
-        <h3>➕ 商品管理</h3>
-        <input type="text" id="p-name" placeholder="商品名称">
-        <input type="number" id="p-price" placeholder="价格">
-        <input type="number" id="p-stock" placeholder="库存">
-        <input type="text" id="p-image" placeholder="图片名">
-        <br><textarea id="p-desc" placeholder="商品描述"></textarea><br>
-        <button class="btn green" onclick="addProduct()">上架商品</button>
-    </div>
-
-    <div class="section">
-        <h3>📦 订单管理</h3>
-        <button class="btn orange" onclick="loadAllOrders()">刷新所有订单</button>
-        <table>
-            <thead>
-            <tr>
-                <th>订单号</th>
-                <th>用户ID</th>
-                <th>商品</th>
-                <th>数量</th>
-                <th>总价</th>
-                <th>状态</th>
-                <th>操作</th>
-            </tr>
-            </thead>
-            <tbody id="admin-order-body"></tbody>
-        </table>
-        <div class="pagination-bar">
-            <button id="btn-prev" onclick="changePage(-1)">上一页</button>
-            <span id="page-info">第 1 页</span>
-            <button id="btn-next" onclick="changePage(1)">下一页</button>
+        <div class="nav-item" data-cust-section="cust-cart" onclick="Customer.showSection('cust-cart')">
+          🛒 <span>购物车</span> <span id="cart-badge-sidebar" style="margin-left:auto;font-size:11px;color:var(--red)"></span>
         </div>
-    </div>
+        <div class="nav-item" data-cust-section="cust-orders" onclick="Customer.showSection('cust-orders')">
+          📋 <span>我的订单</span>
+        </div>
+        <div class="nav-divider"></div>
+        <div class="nav-title">商品分类</div>
+        <div id="cust-sidebar-cats" class="category-list">
+          <div class="nav-item active" onclick="Customer.currentCategory='全部';Customer.loadProducts();">
+            <span>全部分类</span>
+          </div>
+        </div>
+      </div>
 
-    <div class="section">
-        <h3>📈 销售统计</h3>
-        <button class="btn orange" onclick="loadStats()">查看报表</button>
-        <table>
-            <thead>
-            <tr style="background: rgba(255,235,59,0.3);">
-                <th>商品名称</th>
-                <th>累计销量</th>
-                <th>累计收入</th>
-            </tr>
-            </thead>
-            <tbody id="stats-body"></tbody>
-        </table>
+      <div class="main-content">
+        <!-- 商场 -->
+        <div id="cust-shop">
+          <div class="card">
+            <div class="search-bar">
+              <input type="text" id="cust-search" placeholder="🔍 搜索武器皮肤...">
+              <select id="cust-category-filter">
+                <option value="全部">全部分类</option>
+              </select>
+            </div>
+            <div class="product-grid" id="cust-product-grid"></div>
+          </div>
+          <div id="cust-personal-recs"></div>
+        </div>
+
+        <!-- 购物车 -->
+        <div id="cust-cart" class="hidden">
+          <div class="card">
+            <div class="card-header">
+              <h3>🛒 我的购物车</h3>
+            </div>
+            <table>
+              <thead>
+                <tr><th>商品</th><th>单价</th><th>数量</th><th>小计</th><th>操作</th></tr>
+              </thead>
+              <tbody id="cust-cart-body"></tbody>
+            </table>
+            <div style="display:flex;justify-content:flex-end;align-items:center;gap:16px;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">
+              <span style="font-size:14px;color:var(--text-dim)">合计:</span>
+              <span style="font-size:22px;font-weight:800;color:var(--gold);font-family:'JetBrains Mono',monospace">¥<span id="cust-cart-total">0.00</span></span>
+              <button class="btn btn-gold" onclick="Customer.checkout()" style="padding:10px 30px;font-size:15px">一键结算</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 订单 -->
+        <div id="cust-orders" class="hidden">
+          <div class="card">
+            <div class="card-header">
+              <h3>📋 我的订单</h3>
+              <button class="btn btn-ghost" onclick="Customer.loadOrders()">刷新</button>
+            </div>
+            <table>
+              <thead>
+                <tr><th>订单号</th><th>商品</th><th>数量</th><th>总价</th><th>状态</th><th>操作</th></tr>
+              </thead>
+              <tbody id="cust-order-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+
+  <!-- ==================== Sales界面 ==================== -->
+  <div id="app-sales" class="hidden">
+    <div class="sales-layout">
+      <div class="sidebar" id="sales-app">
+        <div class="nav-item active" data-sales-section="sales-dashboard" onclick="Sales.showSection('sales-dashboard')">
+          📊 <span>仪表板</span>
+        </div>
+        <div class="nav-item" data-sales-section="sales-products" onclick="Sales.showSection('sales-products')">
+          📦 <span>商品管理</span>
+        </div>
+        <div class="nav-item" data-sales-section="sales-categories" onclick="Sales.showSection('sales-categories')">
+          📂 <span>分类管理</span>
+        </div>
+        <div class="nav-item" data-sales-section="sales-logs" onclick="Sales.showSection('sales-logs')">
+          📋 <span>日志查看</span>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <!-- 仪表板 -->
+        <div id="sales-dashboard">
+          <div class="stat-cards">
+            <div class="stat-card"><div class="label">商品总数</div><div class="value" id="sales-stat-total">-</div></div>
+            <div class="stat-card"><div class="label">库存不足(≤5)</div><div class="value" style="color:var(--red)" id="sales-stat-low">-</div></div>
+            <div class="stat-card"><div class="label">待发货订单</div><div class="value" style="color:var(--blue)" id="sales-stat-pending">-</div></div>
+            <div class="stat-card"><div class="label">今日订单</div><div class="value" style="color:var(--green)" id="sales-stat-today">-</div></div>
+          </div>
+        </div>
+
+        <!-- 商品管理 -->
+        <div id="sales-products" class="hidden">
+          <div class="card">
+            <div class="search-bar">
+              <input type="text" id="sales-search" placeholder="搜索商品...">
+              <select id="sales-cat-filter">
+                <option value="">全部</option>
+              </select>
+              <button class="btn btn-primary" onclick="Sales.showAddProduct()" style="margin-left:auto">+ 添加商品</button>
+            </div>
+            <table>
+              <thead><tr><th>ID</th><th>名称</th><th>分类</th><th>价格</th><th>库存</th><th>状态</th><th>操作</th></tr></thead>
+              <tbody id="sales-product-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 分类管理 -->
+        <div id="sales-categories" class="hidden">
+          <div class="card">
+            <div class="card-header"><h3>📂 商品分类</h3></div>
+            <div style="display:flex;gap:10px;margin-bottom:16px">
+              <input type="text" id="sales-new-cat" placeholder="新分类名称" class="form-input" style="max-width:300px">
+              <button class="btn btn-primary" onclick="Sales.addCategory()">添加分类</button>
+            </div>
+            <table>
+              <thead><tr><th>ID</th><th>名称</th><th>创建时间</th><th>操作</th></tr></thead>
+              <tbody id="sales-cat-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 日志 -->
+        <div id="sales-logs" class="hidden">
+          <div class="card">
+            <div class="tabs" style="margin-bottom:16px">
+              <div class="tab log-tab active" data-log-type="browse" onclick="Sales.loadLogs('browse')">浏览日志</div>
+              <div class="tab log-tab" data-log-type="login" onclick="Sales.loadLogs('login')">登录日志</div>
+              <div class="tab log-tab" data-log-type="operation" onclick="Sales.loadLogs('operation')">操作日志</div>
+            </div>
+            <table>
+              <thead id="sales-log-head"></thead>
+              <tbody id="sales-log-body"></tbody>
+            </table>
+            <div class="pagination">
+              <button class="btn btn-ghost" onclick="Sales.prevLogPage()">上一页</button>
+              <span id="sales-log-page">第 1 页</span>
+              <button class="btn btn-ghost" onclick="Sales.nextLogPage()">下一页</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== Admin界面 ==================== -->
+  <div id="app-admin" class="hidden">
+    <div class="admin-layout">
+      <div class="sidebar" id="admin-app">
+        <div class="nav-item active" data-admin-section="admin-dashboard" onclick="Admin.showSection('admin-dashboard')">
+          📊 <span>数据大屏</span>
+        </div>
+        <div class="nav-item" data-admin-section="admin-salespersons" onclick="Admin.showSection('admin-salespersons')">
+          👥 <span>销售员管理</span>
+        </div>
+        <div class="nav-item" data-admin-section="admin-performance" onclick="Admin.showSection('admin-performance')">
+          📈 <span>业绩与画像</span>
+        </div>
+        <div class="nav-item" data-admin-section="admin-logs" onclick="Admin.showSection('admin-logs')">
+          📋 <span>日志查看</span>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <!-- 数据大屏 -->
+        <div id="admin-dashboard">
+          <div class="stat-cards">
+            <div class="stat-card"><div class="label">累计销售额</div><div class="value" id="admin-stat-revenue">-</div></div>
+            <div class="stat-card"><div class="label">总订单数</div><div class="value" style="color:var(--blue)" id="admin-stat-orders">-</div></div>
+            <div class="stat-card"><div class="label">活跃用户</div><div class="value" style="color:var(--green)" id="admin-stat-users">-</div></div>
+            <div class="stat-card"><div class="label">库存总值</div><div class="value" style="color:var(--orange)" id="admin-stat-stock">-</div></div>
+          </div>
+
+          <div style="margin-bottom:12px">
+            <button class="btn btn-ghost period-tab active" data-period="daily">日趋势</button>
+            <button class="btn btn-ghost period-tab" data-period="weekly" style="margin-left:6px">周趋势</button>
+            <button class="btn btn-ghost period-tab" data-period="monthly" style="margin-left:6px">月趋势</button>
+          </div>
+
+          <div class="chart-row">
+            <div class="chart-box"><h3>近7天销售趋势</h3><div id="chart-trend" style="height:300px"></div></div>
+            <div class="chart-box"><h3>商品类别销售占比</h3><div id="chart-category" style="height:300px"></div></div>
+          </div>
+          <div class="chart-row">
+            <div class="chart-box"><h3>商品销售排行</h3><div id="chart-leaderboard" style="height:300px"></div></div>
+            <div class="chart-box"><h3>异常检测</h3>
+              <table style="margin-top:8px">
+                <thead><tr><th>商品</th><th>今日销量</th><th>7日均值</th><th>状态</th></tr></thead>
+                <tbody id="anomaly-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 销售员管理 -->
+        <div id="admin-salespersons" class="hidden">
+          <div class="card">
+            <div class="card-header">
+              <h3>👥 销售人员管理</h3>
+              <button class="btn btn-primary" onclick="Admin.showAddSalesperson()">添加销售员</button>
+            </div>
+            <table>
+              <thead><tr><th>ID</th><th>用户名</th><th>姓名</th><th>邮箱</th><th>创建时间</th><th>操作</th></tr></thead>
+              <tbody id="admin-sp-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 业绩与画像 -->
+        <div id="admin-performance" class="hidden">
+          <div class="card">
+            <div class="card-header"><h3>📈 商品销售统计</h3></div>
+            <table>
+              <thead><tr><th>商品</th><th>总销量</th><th>总收入</th></tr></thead>
+              <tbody id="admin-perf-body"></tbody>
+            </table>
+          </div>
+          <div id="admin-profiles" style="margin-top:16px"></div>
+        </div>
+
+        <!-- 日志 -->
+        <div id="admin-logs" class="hidden">
+          <div class="card">
+            <div class="tabs" style="margin-bottom:16px">
+              <div class="tab log-tab active" data-log-type="browse" onclick="Admin.loadLogs('browse')">浏览日志</div>
+              <div class="tab log-tab" data-log-type="login" onclick="Admin.loadLogs('login')">登录日志</div>
+              <div class="tab log-tab" data-log-type="operation" onclick="Admin.loadLogs('operation')">操作日志</div>
+            </div>
+            <table>
+              <thead id="admin-log-head"></thead>
+              <tbody id="admin-log-body"></tbody>
+            </table>
+            <div class="pagination">
+              <button class="btn btn-ghost" onclick="Admin.prevLogPage()">上一页</button>
+              <span id="admin-log-page">第 1 页</span>
+              <button class="btn btn-ghost" onclick="Admin.nextLogPage()">下一页</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div> <!-- end #app -->
+
+<!-- ==================== JavaScript ==================== -->
+<script src="/js/api.js?v=3"></script>
+<script src="/js/customer.js?v=3"></script>
+<script src="/js/sales.js?v=3"></script>
+<script src="/js/admin.js?v=3"></script>
 
 <script>
-    const API_BASE = "http://localhost:8081";
-    let currentUserId = null;
-    let currentUserRole = 0;
-    let allAdminOrders = [];
-    let currentPage = 1;
-    const pageSize = 5;
+/* ==================== 认证流程 ==================== */
 
-    window.onload = function() {
-        const savedUser = localStorage.getItem('shop_user');
-        if(savedUser) handleLoginSuccess(JSON.parse(savedUser));
-    }
+window.onload = function() {
+  const user = auth();
+  if (user) {
+    routeToApp(user);
+  }
+  // 没登录就留在登录页，不自动跳转游客模式
+};
 
-    function toggleAuth(mode){
-        document.getElementById('login-box').classList.toggle('hidden', mode==='register');
-        document.getElementById('register-box').classList.toggle('hidden', mode==='login');
-    }
+function showAuth(mode) {
+  document.getElementById('login-card').classList.toggle('hidden', mode !== 'login');
+  document.getElementById('register-card').classList.toggle('hidden', mode !== 'register');
+}
 
-    async function register(){
-        const username = document.getElementById('reg-username').value;
-        const name = document.getElementById('reg-name').value;
-        const password = document.getElementById('reg-password').value;
-        const email = document.getElementById('reg-email').value;
-        if(!username||!password){alert("用户名和密码不能为空");return;}
-        const res = await fetch(`${API_BASE}/user/register`,{
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({username,password,name,email})
-        });
-        const result = await res.json();
-        if(result.code===1){alert("注册成功"); toggleAuth('login'); }
-        else alert("注册失败:"+result.msg);
-    }
+async function doLogin() {
+  const username = document.getElementById('login-username').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!username || !password) { toast('请输入用户名和密码', 'error'); return; }
 
-    async function login(){
-        const username=document.getElementById('username').value;
-        const password=document.getElementById('password').value;
-        const res=await fetch(`${API_BASE}/user/login`,{
-            method:'POST', headers:{'Content-Type':'application/json'},
-            body:JSON.stringify({username,password})
-        });
-        const result=await res.json();
-        if(result.code===1){ localStorage.setItem('shop_user',JSON.stringify(result.data)); handleLoginSuccess(result.data);}
-        else alert("登录失败:"+result.msg);
-    }
+  try {
+    const res = await api.post('/user/login', { username, password });
+    const user = res.data;
+    saveAuth(user);
+    toast(`欢迎回来，${user.name}！`, 'success');
+    routeToApp(user);
+  } catch (e) {
+    toast('登录失败: ' + e.message, 'error');
+  }
+}
 
-    function handleLoginSuccess(user){
-        currentUserId=user.id; currentUserRole=user.role;
-        const roleName=currentUserRole===1?'管理员':'顾客';
-        document.getElementById('current-user').innerText=`${user.name} (${roleName})`;
-        document.getElementById('top-bar').classList.remove('hidden');
-        document.getElementById('login-box').classList.add('hidden');
-        document.getElementById('register-box').classList.add('hidden');
-        if(currentUserRole===1){document.getElementById('admin-app').classList.remove('hidden'); loadAllOrders();}
-        else{document.getElementById('customer-app').classList.remove('hidden'); loadProducts(); loadCart(); loadMyOrders();}
-    }
+async function doRegister() {
+  const username = document.getElementById('reg-username').value.trim();
+  const password = document.getElementById('reg-password').value;
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const region = document.getElementById('reg-region').value.trim();
 
-    function logout(){ localStorage.removeItem('shop_user'); location.reload(); }
+  if (!username || !password || !name) { toast('用户名、密码、昵称不能为空', 'error'); return; }
+  if (password.length < 6) { toast('密码至少6位', 'error'); return; }
 
-    /* ================= 顾客功能 ================= */
-    async function loadProducts(){
-        const res=await fetch(`${API_BASE}/product/list`);
-        const result=await res.json();
-        const listDiv=document.getElementById('product-list');
-        listDiv.innerHTML='';
-        result.data.forEach(p=>{
-            listDiv.innerHTML+=`<div class="product-card"><h3>${p.name}</h3><p class="price">¥${p.price}</p><p>库存: ${p.stock}</p><button class="btn green" onclick="addToCart(${p.id})">加入购物车</button></div>`;
-        });
-    }
-    async function addToCart(pid){ await fetch(`${API_BASE}/cart/add`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:currentUserId,productId:pid,count:1})}); loadCart(); }
-    async function loadCart(){
-        const res=await fetch(`${API_BASE}/cart/list?userId=${currentUserId}`);
-        const result=await res.json(); const tbody=document.getElementById('cart-body'); tbody.innerHTML='';
-        result.data.forEach(item=>{
-            tbody.innerHTML+=`<tr><td>${item.productName}</td><td>${item.price}</td><td><button class="btn red" onclick="decrease(${item.id})">-</button> ${item.count} <button class="btn green" onclick="addToCart(${item.productId})">+</button></td><td>${item.totalMoney}</td><td><button class="btn red" onclick="removeFromCart(${item.id})">删</button></td></tr>`;
-        });
-    }
-    async function decrease(id){ await fetch(`${API_BASE}/cart/decrease?id=${id}`,{method:'POST'}); loadCart(); }
-    async function removeFromCart(id){ await fetch(`${API_BASE}/cart/remove?id=${id}`,{method:'DELETE'}); loadCart(); }
-    async function checkout(){ if(!confirm("确定结算吗？")) return; const res=await fetch(`${API_BASE}/order/checkout?userId=${currentUserId}`,{method:'POST'}); const result=await res.json(); if(result.code===1){alert(result.data); loadCart(); loadMyOrders();}else alert(result.msg);}
-    async function loadMyOrders(){ const res=await fetch(`${API_BASE}/order/list?userId=${currentUserId}`); const result=await res.json(); renderOrderRows(result.data,document.getElementById('my-order-body'),false);}
-    async function payOrder(orderNo){ await fetch(`${API_BASE}/order/pay?orderNo=${orderNo}`,{method:'POST'}); alert("支付成功"); currentUserRole===1? loadAllOrders():loadMyOrders();}
+  try {
+    await api.post('/user/register', { username, password, name, email, region });
+    toast('注册成功！请登录', 'success');
+    showAuth('login');
+    document.getElementById('login-username').value = username;
+  } catch (e) {
+    toast('注册失败: ' + e.message, 'error');
+  }
+}
 
-    /* ================= 管理员功能 ================= */
-    async function addProduct(){ const data={name:document.getElementById('p-name').value,price:document.getElementById('p-price').value,stock:document.getElementById('p-stock').value,image:document.getElementById('p-image').value,description:document.getElementById('p-desc').value}; const res=await fetch(`${API_BASE}/product/add`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}); if((await res.json()).code===1) alert("上架成功！"); }
-    async function loadAllOrders(){ const res=await fetch(`${API_BASE}/order/admin/list`); const result=await res.json(); allAdminOrders=result.data; currentPage=1; renderAdminPage(); }
-    function renderAdminPage(){ const start=(currentPage-1)*pageSize; const end=start+pageSize; const pageData=allAdminOrders.slice(start,end); renderOrderRows(pageData,document.getElementById('admin-order-body'),true); document.getElementById('page-info').innerText=`第 ${currentPage} 页 / 共 ${Math.ceil(allAdminOrders.length/pageSize)} 页`; document.getElementById('btn-prev').disabled=(currentPage===1); document.getElementById('btn-next').disabled=(end>=allAdminOrders.length);}
-    function changePage(delta){ currentPage+=delta; renderAdminPage(); }
-    async function shipOrder(orderNo){ if(!confirm(`发货并发送邮件给订单 ${orderNo} ？`)) return; const res=await fetch(`${API_BASE}/order/ship?orderNo=${orderNo}`,{method:'POST'}); if((await res.json()).code===1){ alert("发货成功！邮件已发送"); loadAllOrders(); } }
-    async function loadStats(){ const res=await fetch(`${API_BASE}/order/admin/stats`); const result=await res.json(); const tbody=document.getElementById('stats-body'); tbody.innerHTML=''; if(result.data.length===0){tbody.innerHTML='<tr><td colspan="3">暂无数据</td></tr>'; return;} let total=0; result.data.forEach(item=>{total+=item.totalRevenue; tbody.innerHTML+=`<tr><td>${item.productName}</td><td>${item.totalSold}</td><td>¥${item.totalRevenue}</td></tr>`}); tbody.innerHTML+=`<tr style="background:#222;font-weight:bold"><td>总计</td><td>-</td><td>¥${total.toFixed(2)}</td></tr>`;}
-    function renderOrderRows(orders,tbody,isAdmin){ tbody.innerHTML=''; if(orders.length===0){tbody.innerHTML='<tr><td colspan="7">暂无订单</td></tr>'; return;} orders.forEach(order=>{ let status='',btn=''; if(order.status===1){ status='<span style="color:#f44336">待付款</span>'; btn=isAdmin?'<span style="color:#888">等待付款</span>':`<button class="btn green" onclick="payOrder('${order.orderNo}')">支付</button>`;}
-    else if(order.status===2){ status='<span style="color:#ff9800">已付款(待发货)</span>'; btn=isAdmin?`<button class="btn orange" onclick="shipOrder('${order.orderNo}')">发货</button>`:'等待发货...';}
-    else if(order.status===3){ status='<span style="color:#4caf50">已完成</span>'; btn='✅ 已完成';}
-        tbody.innerHTML+=`<tr>${isAdmin?`<td>${order.orderNo}</td><td>User:${order.userId}</td>`:`<td>${order.orderNo}</td>`}<td>${order.productName}</td><td>${order.count}</td><td>${order.totalAmount}</td><td>${status}</td><td>${btn}</td></tr>`;});
+function doLogout() {
+  clearAuth();
+  location.reload();
+}
+
+/* ==================== 路由到对应角色界面 ==================== */
+
+function routeToApp(user) {
+  document.getElementById('login-page').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+
+  // 设置顶部栏
+  const roleNames = { 0: '顾客', 1: '销售员', 2: '管理员' };
+  const roleClasses = { 0: 'role-customer', 1: 'role-sales', 2: 'role-admin' };
+  document.getElementById('user-display-name').textContent = user.name;
+  const badge = document.getElementById('user-role-badge');
+  badge.textContent = roleNames[user.role] || '未知';
+  badge.className = 'role-badge ' + (roleClasses[user.role] || '');
+
+  // 隐藏所有角色界面
+  document.getElementById('app-customer').classList.add('hidden');
+  document.getElementById('app-sales').classList.add('hidden');
+  document.getElementById('app-admin').classList.add('hidden');
+
+  // 路由
+  const cartBadge = document.getElementById('cart-badge');
+  if (user.role === 0) {
+    // 恢复被游客模式隐藏的侧边栏项
+    document.querySelectorAll('#customer-app .nav-item[data-cust-section]').forEach(el => {
+      el.style.display = '';
+    });
+    Customer.init(user);
+    cartBadge.style.display = 'inline-flex';
+  } else if (user.role === 1) {
+    Sales.init(user);
+    cartBadge.style.display = 'none';
+  } else if (user.role === 2) {
+    Admin.init(user);
+    cartBadge.style.display = 'none';
+  }
+}
+
+/* ==================== 游客模式 ==================== */
+
+function routeAsGuest() {
+  document.getElementById('login-page').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+
+  document.getElementById('user-display-name').textContent = '游客';
+  const badge = document.getElementById('user-role-badge');
+  badge.textContent = '游客';
+  badge.className = 'role-badge role-customer';
+
+  document.getElementById('app-customer').classList.remove('hidden');
+  document.getElementById('app-sales').classList.add('hidden');
+  document.getElementById('app-admin').classList.add('hidden');
+
+  // 隐藏购物车角标
+  document.getElementById('cart-badge').style.display = 'none';
+
+  // 隐藏需要登录的侧边栏项
+  const sidebar = document.getElementById('customer-app');
+  const items = sidebar.querySelectorAll('.nav-item');
+  items.forEach(item => {
+    const section = item.getAttribute('data-cust-section');
+    if (section === 'cust-cart' || section === 'cust-orders') {
+      item.style.display = 'none';
     }
+  });
+  // 让商城tab高亮
+  items.forEach(el => el.classList.remove('active'));
+  const shopItem = sidebar.querySelector('[data-cust-section="cust-shop"]');
+  if (shopItem) shopItem.classList.add('active');
+
+  // 隐藏购物车/订单/推荐区域
+  document.getElementById('cust-shop').classList.remove('hidden');
+  document.getElementById('cust-cart').classList.add('hidden');
+  document.getElementById('cust-orders').classList.add('hidden');
+
+  // 隐藏分类侧边栏中的购物车/订单/推荐
+  const sidebarExtra = sidebar.querySelectorAll('.nav-item');
+  sidebarExtra.forEach(el => {
+    const sec = el.getAttribute('data-cust-section');
+    if (sec === 'cust-cart' || sec === 'cust-orders') {
+      el.style.display = 'none';
+    }
+  });
+
+  // 顶部栏加登录/注册入口
+  const userInfo = document.querySelector('.user-info');
+  let guestBtns = document.getElementById('guest-login-btns');
+  if (!guestBtns) {
+    guestBtns = document.createElement('span');
+    guestBtns.id = 'guest-login-btns';
+    guestBtns.innerHTML = '<button class="btn-sm" onclick="showLoginFromGuest()" style="margin-right:6px">登录</button><button class="btn-sm" onclick="showRegisterFromGuest()">注册</button>';
+    userInfo.appendChild(guestBtns);
+  }
+  guestBtns.style.display = '';
+
+  // 加载商品
+  GuestCustomer.init();
+}
+
+function showLoginFromGuest() {
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('login-page').classList.remove('hidden');
+  showAuth('login');
+}
+
+function showRegisterFromGuest() {
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('login-page').classList.remove('hidden');
+  showAuth('register');
+}
+
+/* ==================== ECharts 响应式 ==================== */
+window.addEventListener('resize', () => {
+  document.querySelectorAll('[id^="chart-"]').forEach(dom => {
+    const instance = echarts.getInstanceByDom(dom);
+    if (instance) instance.resize();
+  });
+});
 </script>
 
 </body>
 </html>
-

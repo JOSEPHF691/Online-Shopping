@@ -7,23 +7,15 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@TableName("user")
-public class User {
+@TableName("operation_log")
+public class OperationLog {
 
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    private String username;
-    private String password;
-    private String name;
-
-    /**
-     * 0=Customer(顾客), 1=Sales(销售人员), 2=Admin(管理者)
-     */
-    private Integer role;
-
+    private Long operatorId;
+    private String operatorName;
+    private String operation;
+    private String ip;
     private LocalDateTime createTime;
-    private String email;
-    private String region;
-    private String lastLoginIp;
 }
