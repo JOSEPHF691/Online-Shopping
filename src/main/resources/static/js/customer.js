@@ -45,6 +45,18 @@ const Customer = {
 
       const sidebar = document.getElementById('cust-sidebar-cats');
       sidebar.innerHTML = '';
+      // 添加'全部分类'选项
+      const allDiv = document.createElement('div');
+      allDiv.className = 'nav-item active';
+      allDiv.innerHTML = '<span>全部分类</span>';
+      allDiv.onclick = () => {
+        this.currentCategory = '全部';
+        document.getElementById('cust-category-filter').value = '全部';
+        sidebar.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        allDiv.classList.add('active');
+        this.loadProducts();
+      };
+      sidebar.appendChild(allDiv);
       (res.data || []).forEach(c => {
         const div = document.createElement('div');
         div.className = 'nav-item';
@@ -380,6 +392,18 @@ const GuestCustomer = {
 
       const sidebar = document.getElementById('cust-sidebar-cats');
       sidebar.innerHTML = '';
+      // 添加'全部分类'选项
+      const allDiv = document.createElement('div');
+      allDiv.className = 'nav-item active';
+      allDiv.innerHTML = '<span>全部分类</span>';
+      allDiv.onclick = () => {
+        this.currentCategory = '全部';
+        document.getElementById('cust-category-filter').value = '全部';
+        sidebar.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        allDiv.classList.add('active');
+        this.loadProducts();
+      };
+      sidebar.appendChild(allDiv);
       (res.data || []).forEach(c => {
         const div = document.createElement('div');
         div.className = 'nav-item';
